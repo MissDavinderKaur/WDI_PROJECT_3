@@ -8,7 +8,14 @@ function usersIndex(req, res){
   });
 }
 
-module.exports = {
-  index: usersIndex
+function showUser(req, res){
+  User.findById(req.params.id, (err, user) => {
+    if(err) return console.log(err);
+    return res.status(200).json(user);
+  });
+}
 
+module.exports = {
+  index: usersIndex,
+  show: showUser
 };

@@ -1,5 +1,5 @@
-const Planner = Planner || {};
 const google = google;
+const Planner = Planner || {};
 
 Planner.init = function() {
   this.apiURL = 'http://localhost:3000/api';
@@ -14,8 +14,12 @@ Planner.init = function() {
   if (this.getToken()) {
     this.loggedInState();
 
-    const loggedInUserID = (window.atob(((window.localStorage.getItem('token')).split('.'))[1])).split('"')[3];
-    console.log(loggedInUserID);
+    Planner.loggedInUserID = (window.atob(((window.localStorage.getItem('token')).split('.'))[1])).split('"')[3];
+    console.log(Planner.loggedInUserID);
+
+    return Planner.ajaxRequest(`${Planner.apiURL}/users/${Planner.loggedInUserID}`, 'GET', null, user => {
+      Planner.showLoggedInUser(user);
+    });
 
   } else {
     this.loggedOutState();
@@ -33,8 +37,6 @@ Planner.newPlanStepOne = function(e) {
 
   Planner.$main.html(`<div id="map-canvas"></div>`);
   const canvas = document.getElementById('map-canvas');
-  console.log(google);
-  console.log(this);
 
   const mapOptions = {
     zoom: 12,
@@ -96,8 +98,8 @@ Planner.ajaxRequest = function(url, method, data, callback){
   return $.ajax({
     url,
     method,
-    data
-    //WHAT WAS THIS FOR??? beforeSend: this.setRequestHeader.bind(this)
+    data,
+    beforeSend: this.setRequestHeader.bind(this)
   })
   .done(callback)
   .fail(data => {
@@ -154,6 +156,10 @@ Planner.loggedOutState = function(){
 
 Planner.getToken = function(){
   return window.localStorage.getItem('token');
+};
+
+Planner.setRequestHeader = function(xhr) {
+  return xhr.setRequestHeader('Authorization', `Bearer ${this.getToken()}`);
 };
 
 $(Planner.init.bind(Planner));
