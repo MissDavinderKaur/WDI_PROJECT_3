@@ -6,7 +6,12 @@ function registerNewUser(req, res) {
   User.create(req.body.user, (err, user) => {
     if (err) console.log(err);
 
-    const token = jwt.sign(user._id, config.secret, { expiresIn: 60*60*24 });
+    const stringID = (user._id).toString();
+    const objectForJWT = {
+      stringId: stringID
+    };
+
+    const token = jwt.sign(objectForJWT, config.secret, { expiresIn: 60*60*24 });
     return res.status(200).json({
       message: `Welcome ${user.name}!`,
       token,
@@ -25,13 +30,18 @@ function userLogin(req, res){
         return res.status(401).json({ message: 'Unauthorized.' });
       }
 
-      const token = jwt.sign(user._id, config.secret, { expiresIn: 60*60*24 });
+      const stringID = (user._id).toString();
+      const objectForJWT = {
+        stringId: stringID
+      };
+
+      const token = jwt.sign(objectForJWT, config.secret, { expiresIn: 60*60*24 });
 
       return res.status(200).json({
         message: `Welcome ${user.name}!`,
         user,
         token
-      })
+      });
     });
 }
 

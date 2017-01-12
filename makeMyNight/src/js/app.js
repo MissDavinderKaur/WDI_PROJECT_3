@@ -1,4 +1,5 @@
 const Planner = Planner || {};
+const google = google;
 
 Planner.init = function() {
   this.apiURL = 'http://localhost:3000/api';
@@ -8,10 +9,14 @@ Planner.init = function() {
   $('.logout').on('click', this.logOut.bind(this));
 
   this.$main.on('submit', 'form', this.handleForm);
-  // this.$main.on('click', '.logout', this.logOut);
+  this.$main.on('click', '.newPlan', this.newPlanStepOne.bind(this));
 
   if (this.getToken()) {
     this.loggedInState();
+
+    const loggedInUserID = (window.atob(((window.localStorage.getItem('token')).split('.'))[1])).split('"')[3];
+    console.log(loggedInUserID);
+
   } else {
     this.loggedOutState();
   }
@@ -23,12 +28,49 @@ Planner.logOut = function(e) {
   return window.localStorage.clear();
 };
 
+Planner.newPlanStepOne = function(e) {
+  e.preventDefault();
+
+  Planner.$main.html(`<div id="map-canvas"></div>`);
+  const canvas = document.getElementById('map-canvas');
+  console.log(google);
+  console.log(this);
+
+  const mapOptions = {
+    zoom: 12,
+    center: new google.maps.LatLng(51.506178,-0.088369),
+    mapTypeId: google.maps.MapTypeId.ROADMAP
+  };
+
+  this.map = new google.maps.Map(canvas, mapOptions);
+};
 
 Planner.loggedInState = function(){
   $('.login').hide();
   $('.register').hide();
   $('.logout').show();
     //this.plannerChooseShow();
+};
+
+Planner.showLoggedInUser = function(user) {
+  Planner.$main.html(` <h2>Hello ${user.name}</h2>
+    <h5> <b> Email: </b> ${user.emailAddress}</h5>
+    <h5> <b> Phone: </b> ${user.mobile}</h5>
+    <br>
+    <p> <a href="/users/${user._id}/edit" > <button class="btn btn-primary"> Edit User Details </button> </a>
+      <form action="/users/${user._id}" method="post">
+      <input type="hidden" name="_method" value="delete">
+      <button class="btn btn-danger"> Delete User </button>
+      </form>
+      <br>
+      <button class="btn btn-primary newPlan"> Make a new Night Plan! </button>
+      <h5> My Nightplans</h5>`);
+  for( var i = 0; i < user.plans.length; i++) {
+    Planner.$main.append(`<h6> ${user.plans[i].name} on ${user.plans[i].date} (Attendees: ${user.plans[i].attendees} )</h6>`);
+    for( var j = 0; j < (user.plans[i].bookings).length; j++) {
+      Planner.$main.append(`<h6> ${user.plans[i].bookings[j].description} </h6>`);
+    }
+  }
 };
 
 Planner.setToken = function(token){
@@ -45,29 +87,7 @@ Planner.handleForm = function(e){
 
   return Planner.ajaxRequest(url, method, data, data => {
     if (data.token) Planner.setToken(data.token);
-
-    Planner.$main.html(` <h2>Hello ${data.user.name}</h2>
-      <h5> <b> Email: </b> ${data.user.emailAddress}</h5>
-      <h5> <b> Phone: </b> ${data.user.mobile}</h5>
-      <br>
-      <p> <a href="/users/${data.user._id}/edit" > <button class="btn btn-primary"> Edit User Details </button> </a>
-        <form action="/users/${data.user._id}" method="post">
-        <input type="hidden" name="_method" value="delete">
-        <button class="btn btn-danger"> Delete User </button>
-        </form>
-        <br>
-        <h5> My Nightplans</h5>`);
-    for( var i = 0; i < data.user.plans.length; i++) {
-      Planner.$main.append(`<h6> ${data.user.plans[i].name} on ${data.user.plans[i].date} (Attendees: ${data.user.plans[i].attendees} )</h6>`);
-      for( var j = 0; j < (data.user.plans[i].bookings).length; j++) {
-        Planner.$main.append(`<h6> ${data.user.plans[i].bookings[j].description} </h6>`);
-      }
-    }
-
-
-
-
-
+    Planner.showLoggedInUser(data.user);
     Planner.loggedInState();
   });
 };
