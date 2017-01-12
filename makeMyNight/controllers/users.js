@@ -9,7 +9,9 @@ function usersIndex(req, res){
 }
 
 function showUser(req, res){
-  User.findById(req.params.id, (err, user) => {
+  User.findById(req.params.id)
+  .populate('Booking')
+  .exec((err, user) => {
     if(err) return console.log(err);
     return res.status(200).json(user);
   });
