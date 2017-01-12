@@ -5,6 +5,10 @@ Planner.init = function() {
   this.apiURL = 'http://localhost:3000/api';
   this.$main  = $('main');
 
+  $('.register').on('click', this.register.bind(this));
+  $('.login').on('click', this.login.bind(this));
+  $('.logout').on('click', this.logout.bind(this));
+
   if (this.getToken()) {
     this.loggedInState();
     Planner.loggedInUserID = (window.atob(((window.localStorage.getItem('token')).split('.'))[1])).split('"')[3];
@@ -17,10 +21,6 @@ Planner.init = function() {
     Planner.loggedOutState();
     Planner.generateWelcomePage();
   }
-
-  $('.register').on('click', this.register.bind(this));
-  $('.login').on('click', this.login.bind(this));
-  $('.logout').on('click', this.logout.bind(this));
 
   this.$main.on('submit', 'form', this.handleForm);
   this.$main.on('click', '.newPlan', this.newPlanStepOne.bind(this));
@@ -38,7 +38,6 @@ Planner.generateWelcomePage = function() {
 
 Planner.logout = function(e) {
   e.preventDefault();
-  console.log('clicked');
   Planner.generateWelcomePage();
   Planner.loggedOutState();
   return window.localStorage.clear();
