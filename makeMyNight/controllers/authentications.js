@@ -1,6 +1,5 @@
 const User = require('../models/user');
 const jwt = require('jsonwebtoken');
-const bcrypt = require('bcrypt');
 const config = require('../config/config');
 
 function registerNewUser(req, res) {
@@ -12,7 +11,8 @@ function registerNewUser(req, res) {
       message: `Welcome ${user.name}!`,
       token,
       user
-    });
+    })
+    .render('/', { user });
   });
 }
 
@@ -24,12 +24,13 @@ function userLogin(req, res){
     }
 
     const token = jwt.sign(user._id, config.secret, { expiresIn: 60*60*24 });
-
+    
     return res.status(200).json({
       message: `Welcome ${user.name}!`,
       user,
       token
-    });
+    })
+    .render('/', { user });
   });
 }
 
