@@ -136,6 +136,9 @@ Planner.newPlanStepOne = function(e) {
     mapTypeId: google.maps.MapTypeId.ROADMAP
   };
 
+  console.log(canvas);
+  console.log(mapOptions);
+
   this.map = new google.maps.Map(canvas, mapOptions);
 };
 
