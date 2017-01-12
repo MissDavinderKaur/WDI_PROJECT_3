@@ -1,18 +1,19 @@
 const bcrypt = require('bcrypt');
 const mongoose = require('mongoose');
 const validator = require('validator');
+const Booking = require('./booking');
 
 const userSchema = new mongoose.Schema({
   name: { type: String, required: true},
   mobile: { type: Number },
   emailAddress: { type: String, required: true, unique: true },
   passwordHash: { type: String, required: true },
-  nightPlan: {
+  plans: [{
     name: { type: String },
     date: { type: Date },
     attendees: { type: Number },
     bookings: [{ type: mongoose.Schema.ObjectId, ref: 'Booking' }]
-  }
+  }]
 });
 
 userSchema

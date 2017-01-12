@@ -45,12 +45,12 @@ const user1 = new User({
   emailAddress: 'miss_davinder_kaur@hotmail.co.uk',
   password: 'davinder',
   passwordConfirmation: 'davinder',
-  nightPlan: {
+  plans: [{
     name: 'Birthday night out',
     date: new Date('March 10, 2017 00:00:00'),
     attendees: 3,
     bookings: [dinner, show, drinks]
-  }
+  }]
 });
 
 user1.save((err, user) => {

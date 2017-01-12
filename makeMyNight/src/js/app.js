@@ -5,9 +5,10 @@ Planner.init = function() {
   this.$main  = $('main');
   $('.register').on('click', this.register.bind(this));
   $('.login').on('click', this.login.bind(this));
+  $('.logout').on('click', this.logOut.bind(this));
 
   this.$main.on('submit', 'form', this.handleForm);
-  this.$main.on('click', '.logout', this.logOut.bind(this));
+  // this.$main.on('click', '.logout', this.logOut);
 
   if (this.getToken()) {
     this.loggedInState();
@@ -18,6 +19,7 @@ Planner.init = function() {
 
 Planner.logOut = function(e) {
   e.preventDefault();
+  Planner.loggedOutState();
   return window.localStorage.clear();
 };
 
@@ -43,7 +45,29 @@ Planner.handleForm = function(e){
 
   return Planner.ajaxRequest(url, method, data, data => {
     if (data.token) Planner.setToken(data.token);
-    Planner.$main.html(` <h2>Hello ${data.user.name}</h2> `);
+
+    Planner.$main.html(` <h2>Hello ${data.user.name}</h2>
+      <h5> <b> Email: </b> ${data.user.emailAddress}</h5>
+      <h5> <b> Phone: </b> ${data.user.mobile}</h5>
+      <br>
+      <p> <a href="/users/${data.user._id}/edit" > <button class="btn btn-primary"> Edit User Details </button> </a>
+        <form action="/users/${data.user._id}" method="post">
+        <input type="hidden" name="_method" value="delete">
+        <button class="btn btn-danger"> Delete User </button>
+        </form>
+        <br>
+        <h5> My Nightplans</h5>`);
+    for( var i = 0; i < data.user.plans.length; i++) {
+      Planner.$main.append(`<h6> ${data.user.plans[i].name} on ${data.user.plans[i].date} (Attendees: ${data.user.plans[i].attendees} )</h6>`);
+      for( var j = 0; j < (data.user.plans[i].bookings).length; j++) {
+        Planner.$main.append(`<h6> ${data.user.plans[i].bookings[j].description} </h6>`);
+      }
+    }
+
+
+
+
+
     Planner.loggedInState();
   });
 };
