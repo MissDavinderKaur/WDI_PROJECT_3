@@ -145,8 +145,22 @@ Planner.loadMap = function() {
 
 Planner.addTheatres = function() {
   return Planner.ajaxRequest(`${this.apiURL}/venues`, 'GET', null, theatres => {
-    const newArr = theatres.Venues.filter(t => t.City === 'London');
-    console.log(newArr);
+    const geoCoder = new google.maps.Geocoder();
+    console.log(theatres.length);
+    theatres.forEach(function (theatre, index) {
+      geoCoder.geocode({'address': theatres[index].Postcode }, function(results, status) {
+        if (status == google.maps.GeocoderStatus.OK) {
+          const lat = results[0].geometry.location.lat();
+          const lng = results[0].geometry.location.lng()
+          const latlng = new google.maps.LatLng(lat, lng);
+          const marker = new google.maps.Marker({
+            position: latlng,
+            map: Planner.map,
+            animation: google.maps.Animation.DROP
+          });
+        }
+      });
+    });
   });
 };
 
