@@ -3,6 +3,7 @@ const cors = require('cors');
 const express = require('express');
 const expressJWT = require('express-jwt');
 const mongoose = require('mongoose');
+mongoose.Promise = global.Promise;
 const morgan = require('morgan');
 const config = require('./config/config');
 const apiRouter  = require('./config/apiRoutes');
@@ -18,9 +19,6 @@ app.use(cors());
 app.use(express.static(`${__dirname}/public`));
 app.use(morgan('dev'));
 
-// app.get('/*', (req, res) => {
-//   return res.sendFile(`${__dirname}/index.html`);
-// });
 app.use('/api', expressJWT({ secret: config.secret })
   .unless({
     path: [

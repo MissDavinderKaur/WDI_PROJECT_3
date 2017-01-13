@@ -9,6 +9,9 @@ Planner.init = function() {
   $('.login').on('click', this.login.bind(this));
   $('.logout').on('click', this.logout.bind(this));
 
+  this.$main.on('submit', 'form', this.handleForm);
+  this.$main.on('click', '.newPlan', this.newPlan.bind(this));
+
   if (this.getToken()) {
     this.loggedInState();
     Planner.loggedInUserID = (window.atob(((window.localStorage.getItem('token')).split('.'))[1])).split('"')[3];
@@ -20,9 +23,6 @@ Planner.init = function() {
     this.loggedOutState();
     this.generateWelcomePage();
   }
-
-  this.$main.on('submit', 'form', this.handleForm);
-  this.$main.on('click', '.newPlan', this.newPlanStepOne.bind(this));
 };
 
 Planner.loggedOutState = function(){
@@ -124,22 +124,30 @@ Planner.showLoggedInUser = function(user) {
   }
 };
 
-Planner.newPlanStepOne = function(e) {
+Planner.newPlan = function(e) {
   e.preventDefault();
+  this.loadMap();
+  this.addTheatres();
+};
 
+Planner.loadMap = function() {
   Planner.$main.html(`<div id="map-canvas"></div>`);
   const canvas = document.getElementById('map-canvas');
 
   const mapOptions = {
-    zoom: 12,
-    center: new google.maps.LatLng(51.506178,-0.088369),
+    zoom: 13,
+    center: new google.maps.LatLng(51.5154,-0.1410),
     mapTypeId: google.maps.MapTypeId.ROADMAP
   };
 
-  console.log(canvas);
-  console.log(mapOptions);
-
   this.map = new google.maps.Map(canvas, mapOptions);
+};
+
+Planner.addTheatres = function() {
+  return Planner.ajaxRequest(`http://localhost:7000/api/venues`, 'GET', null, theatres => {
+    const newArr = theatres.Venues.filter(t => t.City === 'London');
+    console.log(newArr);
+  });
 };
 
 Planner.logout = function(e) {

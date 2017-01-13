@@ -29,6 +29,8 @@
     "jsonwebtoken": "^7.2.1",
     "mongoose": "^4.7.6",
     "morgan": "^1.7.0",
+    "request": "^2.79.0",
+    "request-promise": "^4.1.1",
     "validator": "^6.2.1"
   }
 }
