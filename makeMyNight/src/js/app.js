@@ -144,7 +144,7 @@ Planner.loadMap = function() {
 };
 
 Planner.addTheatres = function() {
-  return Planner.ajaxRequest(`http://localhost:7000/api/venues`, 'GET', null, theatres => {
+  return Planner.ajaxRequest(`${this.apiURL}/venues`, 'GET', null, theatres => {
     const newArr = theatres.Venues.filter(t => t.City === 'London');
     console.log(newArr);
   });
