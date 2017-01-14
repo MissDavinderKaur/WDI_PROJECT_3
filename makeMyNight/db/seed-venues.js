@@ -1,6 +1,7 @@
 const rp         = require('request-promise');
 const Promise    = require('bluebird');
 const mongoose   = require('mongoose');
+const geocoder   = require('geocoder');
 mongoose.Promise = Promise;
 const Venue      = require('../models/venue');
 
@@ -29,8 +30,20 @@ rp({
   });
 })
 .then(venues => {
-  console.log(`${venues.length} were saved`);
-  process.exit();
+
+  return Promise.map(venues, (venue, i) => {
+    console.log(`Getting geocode for ${i} : ${venue}`);
+    if(venue.postcode !== null) {
+      geocoder.geocode(venue.postcode, function (err, data) {
+        if ( data.status === 'OK') {
+          venue.latitude = data.results[0].geometry.location.lat;
+          venue.longitude = data.results[0].geometry.location.lng;
+          venue.save();
+          console.log(`New venue: ${venue}`);
+        }
+      });
+    }
+  });
 })
 .catch(err => {
   console.log(err);
