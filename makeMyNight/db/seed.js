@@ -5,6 +5,7 @@ mongoose.connect(databaseURL);
 
 const User = require('../models/user');
 const Booking = require('../models/booking');
+const Plan = require('../models/plan');
 
 User.collection.drop();
 Booking.collection.drop();
@@ -39,34 +40,15 @@ drinks1.save((err, booking) => {
   console.log(`${booking.description} was saved`);
 });
 
-const dinner2 = new Booking({
-  type: 'Dinner',
-  description: 'Pizza Express',
-  postcode: 'dinnerPostcode'
+const plan1 = new Plan({
+  name: 'Birthday',
+  date: new Date('March 10, 2017 00:00:00'),
+  attendees: 3,
+  bookings: [dinner1, show1, drinks1]
 });
-dinner2.save((err, booking) => {
+plan1.save((err, plan) => {
   if (err) return console.log(err);
-  console.log(`${booking.description} was saved`);
-});
-
-const show2 = new Booking({
-  type: 'Show',
-  description: 'Singing in the Rain',
-  postcode: 'showPostcode'
-});
-show2.save((err, booking) => {
-  if (err) return console.log(err);
-  console.log(`${booking.description} was saved`);
-});
-
-const drinks2 = new Booking({
-  type: 'Drinks',
-  description: 'Be at One',
-  postcode: 'drinksPostcode'
-});
-drinks2.save((err, booking) => {
-  if (err) return console.log(err);
-  console.log(`${booking.description} was saved`);
+  console.log(`${plan.name} was saved`);
 });
 
 const user1 = new User({
@@ -75,17 +57,7 @@ const user1 = new User({
   emailAddress: 'miss_davinder_kaur@hotmail.co.uk',
   password: 'davinder',
   passwordConfirmation: 'davinder',
-  plans: [{
-    name: 'Birthday night out',
-    date: new Date('March 10, 2017 00:00:00'),
-    attendees: 3,
-    bookings: [dinner1, show1, drinks1]
-  }, {
-    name: 'Sisters Meet Up',
-    date: new Date('March 17, 2017 00:00:00'),
-    attendees: 3,
-    bookings: [dinner2, show2, drinks2]
-  }]
+  plans: [plan1]
 });
 
 user1.save((err, user) => {

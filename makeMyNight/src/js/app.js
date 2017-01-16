@@ -9,10 +9,12 @@ Planner.init = function() {
   $('.login').on('click', this.login.bind(this));
   $('.logout').on('click', this.logout.bind(this));
 
+  this.$main.on('click', '.planDetail', this.showPlanDetail);
   this.$main.on('submit', 'form.auth', this.handleForm);
-  this.$main.on('submit', '.newPlanForm', this.newPlan.bind(this));
+  this.$main.on('submit', '.newPlanForm', this.newPlan);
   this.$main.on('click', '.choosePerformance', this.choosePerformance);
   this.$main.on('submit', '.budgetSearch', this.choosePerformanceByBudget);
+  this.$main.on('click', '.bookShow', this.bookShow);
 
   if (this.getToken()) {
     this.loggedInState();
@@ -111,36 +113,42 @@ Planner.login = function(e) {
         <h5> <b> Email: </b> ${user.emailAddress}</h5>
         <h5> <b> Phone: </b> ${user.mobile}</h5>
         <br>
-        <p> <a href="/users/${user._id}/edit" > <button class="btn btn-primary"> Edit User Details </button> </a>
-        <form action="/users/${user._id}" method="post">
-        <input type="hidden" name="_method" value="delete">
-        <button class="btn btn-danger"> Delete User </button>
-        </form>
         <br>
-        <form class="newPlanForm">
+        <form class="newPlanForm" method="post" action="/users/${user._id}/plans"
         <div class="form-group">
-        <input class="form-control bookingname" type="text" name="booking[name]" placeholder="Booking Name" required>
+        <input class="form-control" type="text" name="plan[name]" placeholder="Plan Name" required>
         </div>
         <div class="form-group">
-        <input class="form-control bookingattendees" type="number" name="booking[attendees]" placeholder="No. of Attendees" required>
+        <input class="form-control" type="number" name="plan[attendees]" placeholder="No. of Attendees" required>
         </div>
         <button class="btn btn-primary"> Make a new Night Plan! </button>
         </form>
-        <h5> My Nightplans</h5>`);
+        <h5> My Previous Plans</h5>`);
         for( var i = 0; i < user.plans.length; i++) {
-          Planner.$main.append(`<h6> ${user.plans[i].name} on ${user.plans[i].date} (Attendees: ${user.plans[i].attendees} )</h6>`);
-          for( var j = 0; j < (user.plans[i].bookings).length; j++) {
-            Planner.$main.append(`<h6> ${user.plans[i].bookings[j].description} </h6>`);
-          }
+          Planner.$main.append(`<h6> <a href="${Planner.apiURL}/users/${user._id}/plans/${user.plans[i]._id}" class="planDetail"> ${user.plans[i].name} </a> on ${user.plans[i].date} </h6>`);
         }
       };
 
+      Planner.showPlanDetail = function(e) {
+        e.preventDefault();
+        return Planner.ajaxRequest(e.currentTarget.href, 'GET', null, plan => {
+          console.log(plan);
+          Planner.$main.html(`<a href="/"> Back to my page </a>
+            <h6> ${plan.name} (${plan.attendees} people) on ${plan.date} </h6>`);
+          for( var i = 0; i < plan.bookings.length; i++) {
+            Planner.$main.append(`<h6> ${plan.bookings[i].description} </a> at  ${plan.bookings[i].postcode} </h6>`);
+          };
+        });
+      };
+
+
       Planner.newPlan = function(e) {
         e.preventDefault();
-        Planner.tempBookingName = ($(e.target).find('.bookingname').val());
-        Planner.tempBookingAttendees = ($(e.target).find('.bookingattendees').val());
-        this.loadMap();
-        this.addTheatres();
+        Planner.ajaxRequest(`${Planner.apiURL}${$(this).attr('action')}`, 'POST', $(this).serialize(), plan => {
+          Planner.currentPlan = plan;
+        });
+        Planner.loadMap();
+        Planner.addTheatres();
       };
 
       Planner.loadMap = function() {
@@ -186,73 +194,84 @@ Planner.login = function(e) {
 
       Planner.choosePerformance = function(e) {
         e.preventDefault();
-        Planner.tempShowName = e.currentTarget.innerHTML
-        Planner.ajaxRequest(`${Planner.apiURL}/Events/${$(this).data('id')}/Performances`, 'GET', null, data => {
-          const filteredPerformances = (data.Performances).filter(p => p.TotalAvailableTickesCount > Planner.tempBookingAttendees);
-
-          Planner.$main.html(` <h2> ${Planner.tempBookingName} : <br>
-          ${Planner.tempBookingAttendees} tickets for ${Planner.tempShowName} </h2>
-          <p> ${filteredPerformances.length} options available </p>
-          <p> Got a budget? Search by max ticket price </p>
-          <form class="budgetSearch" data-id=${data.EventId}> <input class="form-control userBudget" type="number" name="userBudget" required> <button class="btn btn-primary"> Search </button> </form> `);
-
-          for (var i = 0; i < filteredPerformances.length; i++) {
-            Planner.$main.append(`<h6> <a href="#"> ${data.Performances[i].PerformanceDate} </a> </h6>`);
-          }
-        });
-      };
-
-      Planner.choosePerformanceByBudget = function(e) {
-        console.log('choosing performance by budget');
-        console.log($(this));
-        e.preventDefault();
+        Planner.tempBookingShowName = e.target.innerHTML;
         Planner.ajaxRequest(`${Planner.apiURL}/Events/${$(this).data('id')}/Performances`, 'GET', null, data => {
 
-          const filteredPerformances = (data.Performances).filter(p => p.MinimumTicketPrice < ($(e.target).find('.userBudget').val()));
+          const filteredPerformances = (data.Performances).filter(p => p.TotalAvailableTickesCount > Planner.currentPlan.attendees);
 
-          Planner.$main.html(` <h2> ${Planner.tempBookingName} : <br>
-          ${Planner.tempBookingAttendees} tickets for ${Planner.tempShowName} (max £ ${$(e.target).find('.userBudget').val()} per ticket)</h2>
-          <p> ${filteredPerformances.length} options available </p>
-          <button data-id=${data.EventId} class="choosePerformance"> Back to full search </button> `);
-          for (var i = 0; i < filteredPerformances.length; i++) {
-            Planner.$main.append(`<h6> <a href="#"> ${data.Performances[i].PerformanceDate} </a> </h6>`);
-          }
-        });
-      };
+          Planner.$main.html(` <h2> ${Planner.currentPlan.name} : <br>
+            ${Planner.currentPlan.attendees} tickets for ${Planner.tempBookingShowName} </h2>
+            <p> ${filteredPerformances.length} options available </p>
+            <p> Got a budget? Search by max ticket price </p>
+            <form class="budgetSearch" data-id=${data.EventId}> <input class="form-control userBudget" type="number" name="userBudget" required> <button class="btn btn-primary"> Search </button> </form> `);
 
-      Planner.logout = function(e) {
-        e.preventDefault();
-        Planner.generateWelcomePage();
-        Planner.loggedOutState();
-        return window.localStorage.clear();
-      };
+            for (var i = 0; i < filteredPerformances.length; i++) {
+              Planner.$main.append(`<h6> ${data.Performances[i].PerformanceDate} <button class="bookShow"> Book </button> </h6>`);
+            }
+          });
+        };
 
+        Planner.choosePerformanceByBudget = function(e) {
+          e.preventDefault();
+          Planner.ajaxRequest(`${Planner.apiURL}/Events/${$(this).data('id')}/Performances`, 'GET', null, data => {
 
-      //INTERNAL HELPER FUNCTIONS
-      Planner.getToken = function(){
-        return window.localStorage.getItem('token');
-      };
+            const filteredPerformances = (data.Performances).filter(p => p.MinimumTicketPrice < ($(e.target).find('.userBudget').val()));
 
-      Planner.ajaxRequest = function(url, method, data, callback){
-        return $.ajax({
-          url,
-          method,
-          data,
-          beforeSend: this.setRequestHeader.bind(this)
-        })
-        .done(callback)
-        .fail(data => {
-          console.log(data);
-        });
-      };
+            Planner.$main.html(` <h2> ${Planner.currentPlan.name} : <br>
+              ${Planner.currentPlan.attendees} tickets for ${Planner.tempBookingShowName} (max £ ${$(e.target).find('.userBudget').val()} per ticket)</h2>
+              <p> ${filteredPerformances.length} options available </p>
+              <button data-id=${data.EventId} class="choosePerformance"> Back to full search </button> `);
+              for (var i = 0; i < filteredPerformances.length; i++) {
+                Planner.$main.append(`<h6> ${data.Performances[i].PerformanceDate} <button class="bookShow"> Book </button> </h6>`);
+              }
+            });
+          };
 
-      Planner.setToken = function(token){
-        return window.localStorage.setItem('token', token);
-      };
-
-      Planner.setRequestHeader = function(xhr) {
-        return xhr.setRequestHeader('Authorization', `Bearer ${this.getToken()}`);
-      };
+          Planner.bookShow = function(e) {
+            e.preventDefault();
+//booking date is still to be sorted
+            const booking = {
+                  type: 'Show',
+                  description: Planner.tempShowName,
+                  postcode: 'postcode for show'
+                };
+            Planner.ajaxRequest(`${Planner.apiURL}/users/${Planner.loggedInUserID}/plans/${Planner.currentPlan._id}`, 'POST', booking, Planner.showLoggedInUser);
+          };
 
 
-      $(Planner.init.bind(Planner));
+          Planner.logout = function(e) {
+            e.preventDefault();
+            Planner.generateWelcomePage();
+            Planner.loggedOutState();
+            return window.localStorage.clear();
+          };
+
+
+          //INTERNAL HELPER FUNCTIONS
+          Planner.getToken = function(){
+            return window.localStorage.getItem('token');
+          };
+
+          Planner.ajaxRequest = function(url, method, data, callback){
+            return $.ajax({
+              url,
+              method,
+              data,
+              beforeSend: this.setRequestHeader.bind(this)
+            })
+            .done(callback)
+            .fail(data => {
+              console.log(data);
+            });
+          };
+
+          Planner.setToken = function(token){
+            return window.localStorage.setItem('token', token);
+          };
+
+          Planner.setRequestHeader = function(xhr) {
+            return xhr.setRequestHeader('Authorization', `Bearer ${this.getToken()}`);
+          };
+
+
+          $(Planner.init.bind(Planner));
