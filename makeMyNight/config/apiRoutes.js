@@ -12,7 +12,10 @@ router.route('/login')
   .post(authentications.login);
 
 router.route('/users/:id')
-  .get(users.show);
+  .get(users.show)
+  .put(users.update);
+router.route('/users/:id/edit')
+  .get(users.edit);
 
 router.route('/venues')
   .get(venues.index);

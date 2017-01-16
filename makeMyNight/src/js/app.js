@@ -9,15 +9,17 @@ Planner.init = function() {
   $('.login').on('click', this.login.bind(this));
   $('.logout').on('click', this.logout.bind(this));
 
-  this.$main.on('submit', 'form', this.handleForm);
-  this.$main.on('click', '.newPlan', this.newPlan.bind(this));
-  this.$main.on('click', '.performances', this.choosePerformance.bind(this));
+  this.$main.on('submit', 'form.auth', this.handleForm);
+  this.$main.on('submit', '.newPlanForm', this.newPlan.bind(this));
+  this.$main.on('click', '.choosePerformance', this.choosePerformance);
+  this.$main.on('submit', '.budgetSearch', this.choosePerformanceByBudget);
 
   if (this.getToken()) {
     this.loggedInState();
     Planner.loggedInUserID = (window.atob(((window.localStorage.getItem('token')).split('.'))[1])).split('"')[3];
 
     return Planner.ajaxRequest(`${Planner.apiURL}/users/${Planner.loggedInUserID}`, 'GET', null, user => {
+      Planner.loggedInUser = user;
       Planner.showLoggedInUser(user);
     });
   } else {
@@ -47,7 +49,7 @@ Planner.login = function(e) {
   e.preventDefault();
   this.$main.html(`
     <h2>Login</h2>
-    <form method="post" action="/login">
+    <form class="auth" method="post" action="/login">
     <div class="form-group">
     <input class="form-control" type="email" name="emailAddress" placeholder="Email">
     </div>
@@ -63,7 +65,7 @@ Planner.login = function(e) {
     if (e) e.preventDefault();
     this.$main.html(`
       <h2>Register</h2>
-      <form method="post" action="/register">
+      <form class="auth" method="post" action="/register">
       <div class="form-group">
       <input class="form-control" type="text" name="user[name]" placeholder="Fullname">
       </div>
@@ -115,7 +117,15 @@ Planner.login = function(e) {
         <button class="btn btn-danger"> Delete User </button>
         </form>
         <br>
-        <button class="btn btn-primary newPlan"> Make a new Night Plan! </button>
+        <form class="newPlanForm">
+        <div class="form-group">
+        <input class="form-control bookingname" type="text" name="booking[name]" placeholder="Booking Name" required>
+        </div>
+        <div class="form-group">
+        <input class="form-control bookingattendees" type="number" name="booking[attendees]" placeholder="No. of Attendees" required>
+        </div>
+        <button class="btn btn-primary"> Make a new Night Plan! </button>
+        </form>
         <h5> My Nightplans</h5>`);
         for( var i = 0; i < user.plans.length; i++) {
           Planner.$main.append(`<h6> ${user.plans[i].name} on ${user.plans[i].date} (Attendees: ${user.plans[i].attendees} )</h6>`);
@@ -127,6 +137,8 @@ Planner.login = function(e) {
 
       Planner.newPlan = function(e) {
         e.preventDefault();
+        Planner.tempBookingName = ($(e.target).find('.bookingname').val());
+        Planner.tempBookingAttendees = ($(e.target).find('.bookingattendees').val());
         this.loadMap();
         this.addTheatres();
       };
@@ -149,7 +161,7 @@ Planner.login = function(e) {
           $.each(theatres, (index, theatre) => {
             let events = '';
             $.each(theatre.events, (index, event) => {
-              events += `<li> <a class="performances" href="${Planner.apiURL}/events/${event.EventId}/performances"> ${event.Name} </a> </li>`;
+              events += `<li> <a href="#" class="choosePerformance" data-id="${event.EventId}"> ${event.Name} </a> </li>`;
             });
             setTimeout(function() {
               const latlng = new google.maps.LatLng(theatre.latitude, theatre.longitude);
@@ -174,12 +186,39 @@ Planner.login = function(e) {
 
       Planner.choosePerformance = function(e) {
         e.preventDefault();
-        Planner.ajaxRequest(`${e.currentTarget.attributes.href.value}`, 'GET', null, performances => {
-          console.log(performances);
+        Planner.tempShowName = e.currentTarget.innerHTML
+        Planner.ajaxRequest(`${Planner.apiURL}/Events/${$(this).data('id')}/Performances`, 'GET', null, data => {
+          const filteredPerformances = (data.Performances).filter(p => p.TotalAvailableTickesCount > Planner.tempBookingAttendees);
+
+          Planner.$main.html(` <h2> ${Planner.tempBookingName} : <br>
+          ${Planner.tempBookingAttendees} tickets for ${Planner.tempShowName} </h2>
+          <p> ${filteredPerformances.length} options available </p>
+          <p> Got a budget? Search by max ticket price </p>
+          <form class="budgetSearch" data-id=${data.EventId}> <input class="form-control userBudget" type="number" name="userBudget" required> <button class="btn btn-primary"> Search </button> </form> `);
+
+          for (var i = 0; i < filteredPerformances.length; i++) {
+            Planner.$main.append(`<h6> <a href="#"> ${data.Performances[i].PerformanceDate} </a> </h6>`);
+          }
         });
       };
 
+      Planner.choosePerformanceByBudget = function(e) {
+        console.log('choosing performance by budget');
+        console.log($(this));
+        e.preventDefault();
+        Planner.ajaxRequest(`${Planner.apiURL}/Events/${$(this).data('id')}/Performances`, 'GET', null, data => {
 
+          const filteredPerformances = (data.Performances).filter(p => p.MinimumTicketPrice < ($(e.target).find('.userBudget').val()));
+
+          Planner.$main.html(` <h2> ${Planner.tempBookingName} : <br>
+          ${Planner.tempBookingAttendees} tickets for ${Planner.tempShowName} (max £ ${$(e.target).find('.userBudget').val()} per ticket)</h2>
+          <p> ${filteredPerformances.length} options available </p>
+          <button data-id=${data.EventId} class="choosePerformance"> Back to full search </button> `);
+          for (var i = 0; i < filteredPerformances.length; i++) {
+            Planner.$main.append(`<h6> <a href="#"> ${data.Performances[i].PerformanceDate} </a> </h6>`);
+          }
+        });
+      };
 
       Planner.logout = function(e) {
         e.preventDefault();
