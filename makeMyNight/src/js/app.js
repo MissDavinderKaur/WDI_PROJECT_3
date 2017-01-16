@@ -174,7 +174,7 @@ Planner.login = function(e) {
 
       Planner.choosePerformance = function(e) {
         e.preventDefault();
-        Planner.ajaxRequest(`${this.attr('href')}`, 'GET', null, performances => {
+        Planner.ajaxRequest(`${e.currentTarget.attributes.href.value}`, 'GET', null, performances => {
           console.log(performances);
         });
       };

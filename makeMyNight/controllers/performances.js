@@ -1,17 +1,19 @@
-const Venue = require('../models/venue');
+const rp         = require('request-promise');
 
-function venuesIndex(req, res) {
-  Venue.find({
-    latitude: { $ne: null },
-    longitude: { $ne: null },
-    'events.0': { $exists: true }
-  }, (err, venues) => {
-    if (err) return res.status(500).json(err);
-    console.log(venues.length);
-    return res.status(200).json(venues);
-  });
+function performancesShow(req, res) {
+  rp({
+    uri: `https://api.londontheatredirect.com/rest/v2/Events/${req.params.id}/Performances`,
+    headers: {
+      'Api-Key': 'zfjasg2egrnu6skgcfrcjepq' //process.env.THEATRE_DIRECT_API_KEY
+    }
+  })
+  .then(data => {
+    const performances = JSON.parse(data)
+    return res.status(200).json(performances);
+  })
+  .catch(console.log);
 }
 
 module.exports = {
-  index: venuesIndex
+  show: performancesShow
 };
