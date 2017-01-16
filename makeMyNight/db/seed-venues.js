@@ -1,7 +1,7 @@
 const rp         = require('request-promise');
 const Promise    = require('bluebird');
 const mongoose   = require('mongoose');
-const geocoder   = require('geocoder');
+const chalk      = require('chalk');
 mongoose.Promise = Promise;
 const Venue      = require('../models/venue');
 
@@ -19,9 +19,9 @@ rp({
 .then(data => {
   const json = JSON.parse(data);
   const londonTheatres = json.Venues.filter(v => v.City === 'London');
-
+  console.log(chalk.green(`${londonTheatres.length} venues found`));
   return Promise.map(londonTheatres, (theatre, i) => {
-    console.log(`${i}`);
+    console.log(chalk.yellow(`${i}. ${theatre.Name} has been created`));
     return Venue.create({
       venueID: theatre.VenueId,
       name: theatre.Name,
@@ -30,21 +30,38 @@ rp({
   });
 })
 .then(venues => {
-
+  console.log(chalk.green(`${venues.length} venues were created!`));
   return Promise.map(venues, (venue, i) => {
-    console.log(`Getting geocode for ${i} : ${venue}`);
-    if(venue.postcode !== null) {
-      geocoder.geocode(venue.postcode, function (err, data) {
-        if ( data.status === 'OK') {
-          venue.latitude = data.results[0].geometry.location.lat;
-          venue.longitude = data.results[0].geometry.location.lng;
-          venue.save();
-          console.log(`New venue: ${venue}`);
-        }
-      });
-    }
+    console.log(chalk.yellow(`Updating the lat and lng for ${venue.name}`));
+    return delay(i*150).then(() => {
+      return venue.updateLatLng();
+    });
   });
+})
+.then(venues => {
+  console.log(chalk.green(`${venues.length} venues were updated with lat and lngs!`));
+  return Promise.map(venues, (venue, i) => {
+    if (typeof venue === 'undefined') {
+      console.log(`BROKEN VENUE ${venue}`);
+      return;
+    }
+    console.log(`Updating the events for ${venue.name}`);
+    return delay(i*500).then(() => {
+      return venue.getEvents();
+    });
+  });
+})
+.then(venues => {
+  console.log(chalk.green(`${venues.length} venues were updated with events!`));
+  console.log(chalk.red('FINISHED', venues));
+  return process.exit();
 })
 .catch(err => {
   console.log(err);
 });
+
+function delay(t) {
+  return new Promise(function(resolve) {
+    setTimeout(resolve, t);
+  });
+}

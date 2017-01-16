@@ -4,6 +4,7 @@ const router   = express.Router();
 const authentications = require('../controllers/authentications');
 const users           = require('../controllers/users');
 const venues          = require('../controllers/venues');
+const performances    = require('../controllers/performances');
 
 router.route('/register')
   .post(authentications.register);
@@ -15,5 +16,7 @@ router.route('/users/:id')
 
 router.route('/venues')
   .get(venues.index);
+router.route('/events/:id/performances')
+  .get(performances.show);
 
 module.exports = router;

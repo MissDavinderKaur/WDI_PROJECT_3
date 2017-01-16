@@ -11,6 +11,7 @@ Planner.init = function() {
 
   this.$main.on('submit', 'form', this.handleForm);
   this.$main.on('click', '.newPlan', this.newPlan.bind(this));
+  this.$main.on('click', '.performances', this.choosePerformance.bind(this));
 
   if (this.getToken()) {
     this.loggedInState();
@@ -145,9 +146,40 @@ Planner.login = function(e) {
 
       Planner.addTheatres = function() {
         return Planner.ajaxRequest(`${Planner.apiURL}/venues`, 'GET', null, theatres => {
-          console.log(theatres);
+          $.each(theatres, (index, theatre) => {
+            let events = '';
+            $.each(theatre.events, (index, event) => {
+              events += `<li> <a class="performances" href="${Planner.apiURL}/events/${event.EventId}/performances"> ${event.Name} </a> </li>`;
+            });
+            setTimeout(function() {
+              const latlng = new google.maps.LatLng(theatre.latitude, theatre.longitude);
+              const marker = new google.maps.Marker({
+                position: latlng,
+                map: Planner.map,
+                animation: google.maps.Animation.DROP
+              });
+              google.maps.event.addListener(marker, 'click', () => {
+                if (typeof this.infoWindow !== 'undefined') this.infoWindow.close();
+                this.infoWindow = new google.maps.InfoWindow({
+                  content: `<p>${ theatre.name } : <br> <ul> ${events} </ul> </p>`
+                });
+                this.infoWindow.open(Planner.map, marker);
+                Planner.map.setCenter(marker.getPosition());
+                Planner.map.setZoom(15);
+              });
+            }, index * 50);
+          });
         });
       };
+
+      Planner.choosePerformance = function(e) {
+        e.preventDefault();
+        Planner.ajaxRequest(`${this.attr('href')}`, 'GET', null, performances => {
+          console.log(performances);
+        });
+      };
+
+
 
       Planner.logout = function(e) {
         e.preventDefault();
