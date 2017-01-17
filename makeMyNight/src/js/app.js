@@ -142,7 +142,7 @@ Planner.login = function(e) {
         </span>
         <h5 class="previousPlans"> My Previous Plans</h5> </div>`);
         for( var i = 0; i < user.plans.length; i++) {
-          Planner.$main.append(`<div class="content"> <h6 class="previousPlans"> <a href="${Planner.apiURL}/users/${user._id}/plans/${user.plans[i]._id}" class="planDetail"> ${user.plans[i].name} </a> on ${user.plans[i].date} </h6> </div>`);
+          Planner.$main.append(`<div class="appendContent"> <h6 class="previousPlans"> <a href="${Planner.apiURL}/users/${user._id}/plans/${user.plans[i]._id}" class="planDetail"> ${user.plans[i].name} </a> on ${user.plans[i].date} </h6> </div>`);
         }
       });
     };
@@ -150,11 +150,10 @@ Planner.login = function(e) {
     Planner.showPlanDetail = function(e) {
       e.preventDefault();
       return Planner.ajaxRequest(e.currentTarget.href, 'GET', null, plan => {
-        console.log(plan);
         Planner.$main.html(`<div class="content"> <a href="/"> Back to my page </a>
         <h6> ${plan.name} (${plan.attendees} people) on ${plan.date} </h6> </div>`);
         for( var i = 0; i < plan.bookings.length; i++) {
-          Planner.$main.append(`<div class="content"> <h6> ${plan.bookings[i].description}</h6> </div>`);
+          Planner.$main.append(`<div class="appendContent"> <h6> ${plan.bookings[i].description}</h6> </div>`);
         }
       });
     };
@@ -162,7 +161,6 @@ Planner.login = function(e) {
 
     Planner.newPlan = function(e) {
       e.preventDefault();
-      console.log('clicked');
       Planner.ajaxRequest(`${Planner.apiURL}${$(this).attr('action')}`, 'POST', $(this).serialize(), plan => {
         Planner.currentPlan = plan;
       });
@@ -192,10 +190,10 @@ Planner.login = function(e) {
             events += `<li> <a href="#" class="choosePerformance" data-id="${event.EventId}"> ${event.Name} </a> </li>`;
           });
           const icon = {
-          url: 'images/mapmarker.png',
-          scaledSize: new google.maps.Size(20, 20),
-          origin: new google.maps.Point(0,0),
-          anchor: new google.maps.Point(0, 0)
+            url: 'images/mapmarker.png',
+            scaledSize: new google.maps.Size(22, 22),
+            origin: new google.maps.Point(0,0),
+            anchor: new google.maps.Point(0, 0)
           };
           setTimeout(function() {
             const latlng = new google.maps.LatLng(theatre.latitude, theatre.longitude);
@@ -208,7 +206,7 @@ Planner.login = function(e) {
             google.maps.event.addListener(marker, 'click', () => {
               if (typeof this.infoWindow !== 'undefined') this.infoWindow.close();
               this.infoWindow = new google.maps.InfoWindow({
-                content: `<p>${ theatre.name } : <br> <ul> ${events} </ul> </p>`
+                content: `<p class="theatre">${ theatre.name } : <br> <ul class="theatreEvent"> ${events} </ul> </p>`
               });
               this.infoWindow.open(Planner.map, marker);
               Planner.map.setCenter(marker.getPosition());
@@ -221,19 +219,27 @@ Planner.login = function(e) {
 
     Planner.choosePerformance = function(e) {
       e.preventDefault();
-      Planner.tempBookingShowName = e.target.innerHTML;
+
+      if(Planner.tempBookingShowName === undefined){
+        Planner.tempBookingShowName = e.target.innerHTML;
+      }
+
       Planner.ajaxRequest(`${Planner.apiURL}/Events/${$(this).data('id')}/Performances`, 'GET', null, data => {
 
         const filteredPerformances = (data.Performances).filter(p => p.TotalAvailableTickesCount > Planner.currentPlan.attendees);
 
-        Planner.$main.html(` <div class="content"> <h2> ${Planner.currentPlan.name} : <br>
-        ${Planner.currentPlan.attendees} tickets for ${Planner.tempBookingShowName} </h2>
-        <p> ${filteredPerformances.length} options available </p>
-        <p> Got a budget? Search by max ticket price </p>
-        <form class="budgetSearch" data-id=${data.EventId}> <input class="form-control userBudget" type="number" name="userBudget" required> <button class="btn btn-primary"> Search </button> </form> </div>`);
+        Planner.$main.html(` <div class="content"> <h2> ${Planner.currentPlan.name} : </h2> <br>
+        <h5> ${Planner.currentPlan.attendees} tickets for ${Planner.tempBookingShowName} </h5>
+        <p class="smallFont"> ${filteredPerformances.length} options available </p>
+        <span class="col-md-12">
+        <h6 class="col-md-6"> Got a budget? Search by max ticket price </h6>
+        <span class="col-md-4">
+        <form class="budgetSearch" data-id=${data.EventId}> <input class="form-control userBudget" type="number" name="userBudget" required> <button class="btn btn-primary"> Search </button> </form>
+        </span> </div> <br>`);
 
         for (var i = 0; i < filteredPerformances.length; i++) {
-          Planner.$main.append(`<div class="content"><h6> ${data.Performances[i].PerformanceDate} <button class="bookShow" data-id="${data.Performances[i].PerformanceDate}"> Book </button> </h6> </div>`);
+          const date = moment(`${data.Performances[i].PerformanceDate}`).format('ddd Do MMM YYYY, h:mm a');
+          Planner.$main.append(`<div class="appendContent col-md-4"><h6>${date} <button class="bookShow" data-id="${data.Performances[i].PerformanceDate}"> Book </button> </h6> </div>`);
         }
       });
     };
@@ -244,12 +250,15 @@ Planner.login = function(e) {
 
         const filteredPerformances = (data.Performances).filter(p => p.MinimumTicketPrice < ($(e.target).find('.userBudget').val()));
 
-        Planner.$main.html(` <div class="content"> <h2> ${Planner.currentPlan.name} : <br>
-        ${Planner.currentPlan.attendees} tickets for ${Planner.tempBookingShowName} (max £ ${$(e.target).find('.userBudget').val()} per ticket)</h2>
-        <p> ${filteredPerformances.length} options available </p>
-        <button data-id=${data.EventId} class="choosePerformance"> Back to full search </button> </div> `);
+        Planner.$main.html(` <div class="content"> <h2> ${Planner.currentPlan.name} :  </h2> <br>
+        <h5> ${Planner.currentPlan.attendees} tickets for ${Planner.tempBookingShowName} (max £ ${$(e.target).find('.userBudget').val()} per ticket)</h5>
+        <p class="smallFont"> ${filteredPerformances.length} options available </p>
+
+        <button class="btn btn-primary choosePerformance" data-id=${data.EventId}> Back to full search </button> </div> `);
+
         for (var i = 0; i < filteredPerformances.length; i++) {
-          Planner.$main.append(`<div class="content"> <h6> ${data.Performances[i].PerformanceDate} <button class="bookShow" data-id="${data.Performances[i].PerformanceDate}"> Book </button> </h6> </div>`);
+          const date = moment(`${data.Performances[i].PerformanceDate}`).format('ddd Do MMM YYYY, h:mm a');
+          Planner.$main.append(`<div class="appendContent col-md-4"> <h6>${date} <button class="bookShow" data-id="${data.Performances[i].PerformanceDate}"> Book </button> </h6> </div>`);
         }
       });
     };
@@ -275,11 +284,10 @@ Planner.login = function(e) {
             'POST',
             booking,
             plan => {
-              console.log(plan);
               Planner.$main.html(`<a href="/"> Back to my page </a>
               <h6> ${plan.name} (${plan.attendees} people) on ${plan.date} </h6>`);
               for( var i = 0; i < plan.bookings.length; i++) {
-                Planner.$main.append(`<div class="content"> <h6> ${plan.bookings[i].type}: ${plan.bookings[i].description} </h6> </div>`);
+                Planner.$main.append(`<div class="appendContent"> <h6> ${plan.bookings[i].type}: ${plan.bookings[i].description} </h6> </div>`);
               }
             });
           });

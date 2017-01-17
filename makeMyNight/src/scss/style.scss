@@ -43,6 +43,10 @@ a.nav-link {
    background-color: rgba(112,86,109, 0.51);
  }
 
+ .appendContent {
+    background-color: rgba(182,169,181, 0.51);
+  }
+
 .btn-primary {
   background-color: #70566D;
   border-color: #70566D;
@@ -64,4 +68,17 @@ img {
   width: 100%;
   height: calc(100vh - 53px);
   margin: 0 auto;
+}
+
+.theatre{
+  font-family: 'Muli', sans-serif;
+  font-weight: 800;
+}
+
+.theatreEvent{
+  font-family: 'Muli', sans-serif;
+}
+
+.smallFont{
+  font-size: 10px;
 }
