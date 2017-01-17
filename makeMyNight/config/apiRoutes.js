@@ -19,7 +19,8 @@ router.route('/users/:id/plans')
   .post(plans.create);
 router.route('/users/:user_id/plans/:plan_id')
   .get(plans.show)
-  .post(booking.create);
+  .post(booking.create)
+  .put(plans.update);
 
 router.route('/venues')
   .get(venues.index);

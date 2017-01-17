@@ -28,7 +28,16 @@ function plansCreate(req, res) {
   });
 }
 
+function plansUpdate(req, res) {
+  Plan.findByIdAndUpdate(req.params.plan_id, req.body.plan, {new: true}, (err, plan) => {
+    if(err) return res.status(500).json(err);
+    if(!plan) return res.status(404).json({ message: 'No Plan Found.' });
+    return res.status(200).json(plan);
+  });
+}
+
 module.exports = {
   show: showPlan,
-  create: plansCreate
+  create: plansCreate,
+  update: plansUpdate
 };

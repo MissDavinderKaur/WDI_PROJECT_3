@@ -25,8 +25,8 @@ Planner.init = function() {
       Planner.showLoggedInUser(user);
     });
   } else {
-    this.loggedOutState();
-    this.generateWelcomePage();
+    Planner.loggedOutState();
+    Planner.generateWelcomePage();
   }
 };
 
@@ -109,35 +109,36 @@ Planner.login = function(e) {
     };
 
     Planner.showLoggedInUser = function(user) {
-      Planner.$main.html(` <h2>Hello ${user.name}</h2>
-        <h5> <b> Email: </b> ${user.emailAddress}</h5>
-        <h5> <b> Phone: </b> ${user.mobile}</h5>
-        <br>
-        <br>
-        <form class="newPlanForm" method="post" action="/users/${user._id}/plans"
-        <div class="form-group">
-        <input class="form-control" type="text" name="plan[name]" placeholder="Plan Name" required>
-        </div>
-        <div class="form-group">
-        <input class="form-control" type="number" name="plan[attendees]" placeholder="No. of Attendees" required>
-        </div>
-        <button class="btn btn-primary"> Make a new Night Plan! </button>
-        </form>
-        <h5> My Previous Plans</h5>`);
-        for( var i = 0; i < user.plans.length; i++) {
-          Planner.$main.append(`<h6> <a href="${Planner.apiURL}/users/${user._id}/plans/${user.plans[i]._id}" class="planDetail"> ${user.plans[i].name} </a> on ${user.plans[i].date} </h6>`);
-        }
-      };
+      Planner.ajaxRequest(`${Planner.apiURL}/users/${user._id}`, 'GET', `${user._id}`, user => {
+        Planner.$main.html(` <h2>Hello ${user.name}</h2>
+          <h5> <b> Email: </b> ${user.emailAddress}</h5>
+          <h5> <b> Phone: </b> ${user.mobile}</h5>
+          <br>
+          <br>
+          <form class="newPlanForm" method="post" action="/users/${user._id}/plans"
+          <div class="form-group">
+          <input class="form-control" type="text" name="plan[name]" placeholder="Plan Name" required>
+          </div>
+          <div class="form-group">
+          <input class="form-control" type="number" name="plan[attendees]" placeholder="No. of Attendees" required>
+          </div>
+          <button class="btn btn-primary"> Make a new Night Plan! </button>
+          </form>
+          <h5> My Previous Plans</h5>`);
+          for( var i = 0; i < user.plans.length; i++) {
+            Planner.$main.append(`<h6> <a href="${Planner.apiURL}/users/${user._id}/plans/${user.plans[i]._id}" class="planDetail"> ${user.plans[i].name} </a> on ${user.plans[i].date} </h6>`);
+          }
+      });
+    };
 
       Planner.showPlanDetail = function(e) {
         e.preventDefault();
         return Planner.ajaxRequest(e.currentTarget.href, 'GET', null, plan => {
-          console.log(plan);
           Planner.$main.html(`<a href="/"> Back to my page </a>
-            <h6> ${plan.name} (${plan.attendees} people) on ${plan.date} </h6>`);
+          <h6> ${plan.name} (${plan.attendees} people) on ${plan.date} </h6>`);
           for( var i = 0; i < plan.bookings.length; i++) {
             Planner.$main.append(`<h6> ${plan.bookings[i].description} </a> at  ${plan.bookings[i].postcode} </h6>`);
-          };
+          }
         });
       };
 
@@ -222,56 +223,73 @@ Planner.login = function(e) {
               <p> ${filteredPerformances.length} options available </p>
               <button data-id=${data.EventId} class="choosePerformance"> Back to full search </button> `);
               for (var i = 0; i < filteredPerformances.length; i++) {
-                Planner.$main.append(`<h6> ${data.Performances[i].PerformanceDate} <button class="bookShow"> Book </button> </h6>`);
+                Planner.$main.append(`<h6> ${data.Performances[i].PerformanceDate} <button class="bookShow" data-id="${data.Performances[i].PerformanceDate}"> Book </button> </h6>`);
               }
             });
           };
 
           Planner.bookShow = function(e) {
             e.preventDefault();
-//booking date is still to be sorted
-            const booking = {
+            Planner.currentPlan.date = ($('.bookShow').attr('data-id'));
+
+            Planner.ajaxRequest(
+              `${Planner.apiURL}/users/${Planner.loggedInUserID}/plans/${Planner.currentPlan._id}`, 'PUT',
+              Planner.currentPlan,
+              plan => {
+
+                const booking = {
                   type: 'Show',
-                  description: Planner.tempShowName,
-                  postcode: 'postcode for show'
+                  description: Planner.tempShowName
                 };
-            Planner.ajaxRequest(`${Planner.apiURL}/users/${Planner.loggedInUserID}/plans/${Planner.currentPlan._id}`, 'POST', booking, Planner.showLoggedInUser);
-          };
+
+                Planner.ajaxRequest(
+                  `${Planner.apiURL}/users/${Planner.loggedInUserID}/plans/${Planner.currentPlan._id}`,
+                  'POST',
+                  booking,
+                  plan => {
+                    console.log(plan);
+                    Planner.$main.html(`<a href="/"> Back to my page </a>
+                    <h6> ${plan.name} (${plan.attendees} people) on ${plan.date} </h6>`);
+                    for( var i = 0; i < plan.bookings.length; i++) {
+                      Planner.$main.append(`<h6> ${plan.bookings[i].type}: ${plan.bookings[i].description} </h6>`);
+                    }
+                  });
+                });
+              };
+
+              Planner.logout = function(e) {
+                e.preventDefault();
+                Planner.generateWelcomePage();
+                Planner.loggedOutState();
+                return window.localStorage.clear();
+              };
 
 
-          Planner.logout = function(e) {
-            e.preventDefault();
-            Planner.generateWelcomePage();
-            Planner.loggedOutState();
-            return window.localStorage.clear();
-          };
+              //INTERNAL HELPER FUNCTIONS
+              Planner.getToken = function(){
+                return window.localStorage.getItem('token');
+              };
+
+              Planner.ajaxRequest = function(url, method, data, callback){
+                return $.ajax({
+                  url,
+                  method,
+                  data,
+                  beforeSend: this.setRequestHeader.bind(this)
+                })
+                .done(callback)
+                .fail(data => {
+                  console.log(data);
+                });
+              };
+
+              Planner.setToken = function(token){
+                return window.localStorage.setItem('token', token);
+              };
+
+              Planner.setRequestHeader = function(xhr) {
+                return xhr.setRequestHeader('Authorization', `Bearer ${this.getToken()}`);
+              };
 
 
-          //INTERNAL HELPER FUNCTIONS
-          Planner.getToken = function(){
-            return window.localStorage.getItem('token');
-          };
-
-          Planner.ajaxRequest = function(url, method, data, callback){
-            return $.ajax({
-              url,
-              method,
-              data,
-              beforeSend: this.setRequestHeader.bind(this)
-            })
-            .done(callback)
-            .fail(data => {
-              console.log(data);
-            });
-          };
-
-          Planner.setToken = function(token){
-            return window.localStorage.setItem('token', token);
-          };
-
-          Planner.setRequestHeader = function(xhr) {
-            return xhr.setRequestHeader('Authorization', `Bearer ${this.getToken()}`);
-          };
-
-
-          $(Planner.init.bind(Planner));
+              $(Planner.init.bind(Planner));

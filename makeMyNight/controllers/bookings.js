@@ -13,6 +13,7 @@ function bookingsCreate(req, res) {
       plan.bookings.push(booking);
       plan.save((err, plan) => {
         if(err) return res.status(500).json(err);
+        console.log(plan);
 
         return res.status(200).json(plan);
       });

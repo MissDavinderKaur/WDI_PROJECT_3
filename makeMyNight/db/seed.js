@@ -12,8 +12,7 @@ Booking.collection.drop();
 
 const dinner1 = new Booking({
   type: 'Dinner',
-  description: 'Dishoom',
-  postcode: 'dinnerPostcode'
+  description: 'Dishoom'
 });
 dinner1.save((err, booking) => {
   if (err) return console.log(err);
@@ -22,8 +21,7 @@ dinner1.save((err, booking) => {
 
 const show1 = new Booking({
   type: 'Show',
-  description: 'Top Hat',
-  postcode: 'showPostcode'
+  description: 'Top Hat'
 });
 show1.save((err, booking) => {
   if (err) return console.log(err);
@@ -32,8 +30,7 @@ show1.save((err, booking) => {
 
 const drinks1 = new Booking({
   type: 'Drinks',
-  description: '100 Wardour',
-  postcode: 'drinksPostcode'
+  description: '100 Wardour'
 });
 drinks1.save((err, booking) => {
   if (err) return console.log(err);
