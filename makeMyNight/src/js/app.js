@@ -44,9 +44,9 @@ Planner.loggedOutState = function(){
 Planner.generateWelcomePage = function() {
   Planner.$main.html(`<div class="jumbotron">
   <div class="container">
-  <h1>Welcome!</h1>
+  <h1> <span class="brand"> Welcome! </span> </h1>
   <h5>Ever had to plan the perfect evening but didn't know where to start? <br> <br>
-  Presenting <b> Make My Night </b>. The one stop shop to plan a great evening, with a partner or friends or family! </h5>
+  Presenting <span class="brandSmall"> Make My Night </span>. The one stop shop to plan a great evening, with a partner or friends or family! </h5>
   </div>
   </div>`);
 };
@@ -54,41 +54,47 @@ Planner.generateWelcomePage = function() {
 Planner.login = function(e) {
   e.preventDefault();
   this.$main.html(`
+    <div class="content">
     <h2>Login</h2>
     <form class="auth" method="post" action="/login">
-    <div class="form-group">
+    <div class="form-group col-md-6">
     <input class="form-control" type="email" name="emailAddress" placeholder="Email">
     </div>
-    <div class="form-group">
+    <div class="form-group col-md-6">
     <input class="form-control" type="password" name="password" placeholder="Password">
     </div>
     <input class="btn btn-primary" type="submit" value="Login">
     </form>
+    </div>
     `);
   };
 
   Planner.register = function(e){
     if (e) e.preventDefault();
     this.$main.html(`
+      <div class="content">
       <h2>Register</h2>
       <form class="auth" method="post" action="/register">
-      <div class="form-group">
+      <span class="col-md-12" style="padding-left: 0px; padding-right: 0px;">
+      <div class="form-group col-md-6">
       <input class="form-control" type="text" name="user[name]" placeholder="Fullname">
       </div>
-      <div class="form-group">
+      </span>
+      <div class="form-group col-md-6">
       <input class="form-control" type="number" name="user[mobile]" placeholder="Mobile Number">
       </div>
-      <div class="form-group">
+      <div class="form-group col-md-6">
       <input class="form-control" type="email" name="user[emailAddress]" placeholder="Email">
       </div>
-      <div class="form-group">
+      <div class="form-group col-md-6">
       <input class="form-control" type="password" name="user[password]" placeholder="Password">
       </div>
-      <div class="form-group">
+      <div class="form-group col-md-6">
       <input class="form-control" type="password" name="user[passwordConfirmation]" placeholder="Password Confirmation">
       </div>
       <input class="btn btn-primary" type="submit" value="Register">
       </form>
+      </div>
       `);
     };
 
@@ -114,23 +120,28 @@ Planner.login = function(e) {
 
     Planner.showLoggedInUser = function(user) {
       Planner.ajaxRequest(`${Planner.apiURL}/users/${user._id}`, 'GET', `${user._id}`, user => {
-        Planner.$main.html(` <h2>Hello ${user.name}</h2>
+        Planner.$main.html(`<div class="content"> <h2>Hello... ${user.name}</h2>
+          <img src="../images/profilePic.jpeg" alt="Davinder Kaur">
           <h5> <b> Email: </b> ${user.emailAddress}</h5>
           <h5> <b> Phone: </b> ${user.mobile}</h5>
           <br>
           <br>
-          <form class="newPlanForm" method="post" action="/users/${user._id}/plans"
-          <div class="form-group">
+          <span class="col-md-12">
+          <form class="newPlanForm" method="post" action="/users/${user._id}/plans">
+          <div class="form-group col-md-3">
           <input class="form-control" type="text" name="plan[name]" placeholder="Plan Name" required>
           </div>
-          <div class="form-group">
+          <div class="form-group col-md-3">
           <input class="form-control" type="number" name="plan[attendees]" placeholder="No. of Attendees" required>
           </div>
+          <div class="form-group col-md-3">
           <button class="btn btn-primary"> Make a new Night Plan! </button>
+          </div>
           </form>
-          <h5> My Previous Plans</h5>`);
+          </span>
+          <h5> My Previous Plans</h5> </div>`);
           for( var i = 0; i < user.plans.length; i++) {
-            Planner.$main.append(`<h6> <a href="${Planner.apiURL}/users/${user._id}/plans/${user.plans[i]._id}" class="planDetail"> ${user.plans[i].name} </a> on ${user.plans[i].date} </h6>`);
+            Planner.$main.append(`<div class="content"> <h6> <a href="${Planner.apiURL}/users/${user._id}/plans/${user.plans[i]._id}" class="planDetail"> ${user.plans[i].name} </a> on ${user.plans[i].date} </h6> </div>`);
           }
       });
     };
@@ -139,10 +150,10 @@ Planner.login = function(e) {
         e.preventDefault();
         return Planner.ajaxRequest(e.currentTarget.href, 'GET', null, plan => {
           console.log(plan);
-          Planner.$main.html(`<a href="/"> Back to my page </a>
-          <h6> ${plan.name} (${plan.attendees} people) on ${plan.date} </h6>`);
+          Planner.$main.html(`<div class="content"> <a href="/"> Back to my page </a>
+          <h6> ${plan.name} (${plan.attendees} people) on ${plan.date} </h6> </div>`);
           for( var i = 0; i < plan.bookings.length; i++) {
-            Planner.$main.append(`<h6> ${plan.bookings[i].description}</h6>`);
+            Planner.$main.append(`<div class="content"> <h6> ${plan.bookings[i].description}</h6> </div>`);
           }
         });
       };
@@ -150,6 +161,7 @@ Planner.login = function(e) {
 
       Planner.newPlan = function(e) {
         e.preventDefault();
+        console.log('clicked');
         Planner.ajaxRequest(`${Planner.apiURL}${$(this).attr('action')}`, 'POST', $(this).serialize(), plan => {
           Planner.currentPlan = plan;
         });
@@ -205,14 +217,14 @@ Planner.login = function(e) {
 
           const filteredPerformances = (data.Performances).filter(p => p.TotalAvailableTickesCount > Planner.currentPlan.attendees);
 
-          Planner.$main.html(` <h2> ${Planner.currentPlan.name} : <br>
+          Planner.$main.html(` <div class="content"> <h2> ${Planner.currentPlan.name} : <br>
             ${Planner.currentPlan.attendees} tickets for ${Planner.tempBookingShowName} </h2>
             <p> ${filteredPerformances.length} options available </p>
             <p> Got a budget? Search by max ticket price </p>
-            <form class="budgetSearch" data-id=${data.EventId}> <input class="form-control userBudget" type="number" name="userBudget" required> <button class="btn btn-primary"> Search </button> </form> `);
+            <form class="budgetSearch" data-id=${data.EventId}> <input class="form-control userBudget" type="number" name="userBudget" required> <button class="btn btn-primary"> Search </button> </form> </div>`);
 
             for (var i = 0; i < filteredPerformances.length; i++) {
-              Planner.$main.append(`<h6> ${data.Performances[i].PerformanceDate} <button class="bookShow" data-id="${data.Performances[i].PerformanceDate}"> Book </button> </h6>`);
+              Planner.$main.append(`<div class="content"><h6> ${data.Performances[i].PerformanceDate} <button class="bookShow" data-id="${data.Performances[i].PerformanceDate}"> Book </button> </h6> </div>`);
             }
           });
         };
@@ -223,12 +235,12 @@ Planner.login = function(e) {
 
             const filteredPerformances = (data.Performances).filter(p => p.MinimumTicketPrice < ($(e.target).find('.userBudget').val()));
 
-            Planner.$main.html(` <h2> ${Planner.currentPlan.name} : <br>
+            Planner.$main.html(` <div class="content"> <h2> ${Planner.currentPlan.name} : <br>
               ${Planner.currentPlan.attendees} tickets for ${Planner.tempBookingShowName} (max £ ${$(e.target).find('.userBudget').val()} per ticket)</h2>
               <p> ${filteredPerformances.length} options available </p>
-              <button data-id=${data.EventId} class="choosePerformance"> Back to full search </button> `);
+              <button data-id=${data.EventId} class="choosePerformance"> Back to full search </button> </div> `);
               for (var i = 0; i < filteredPerformances.length; i++) {
-                Planner.$main.append(`<h6> ${data.Performances[i].PerformanceDate} <button class="bookShow" data-id="${data.Performances[i].PerformanceDate}"> Book </button> </h6>`);
+                Planner.$main.append(`<div class="content"> <h6> ${data.Performances[i].PerformanceDate} <button class="bookShow" data-id="${data.Performances[i].PerformanceDate}"> Book </button> </h6> </div>`);
               }
             });
           };
@@ -258,7 +270,7 @@ Planner.login = function(e) {
                     Planner.$main.html(`<a href="/"> Back to my page </a>
                     <h6> ${plan.name} (${plan.attendees} people) on ${plan.date} </h6>`);
                     for( var i = 0; i < plan.bookings.length; i++) {
-                      Planner.$main.append(`<h6> ${plan.bookings[i].type}: ${plan.bookings[i].description} </h6>`);
+                      Planner.$main.append(`<div class="content"> <h6> ${plan.bookings[i].type}: ${plan.bookings[i].description} </h6> </div>`);
                     }
                   });
               });
