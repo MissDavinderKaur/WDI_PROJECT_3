@@ -141,7 +141,7 @@ Planner.login = function(e) {
           Planner.$main.html(`<a href="/"> Back to my page </a>
           <h6> ${plan.name} (${plan.attendees} people) on ${plan.date} </h6>`);
           for( var i = 0; i < plan.bookings.length; i++) {
-            Planner.$main.append(`<h6> ${plan.bookings[i].description} </a> at  ${plan.bookings[i].postcode} </h6>`);
+            Planner.$main.append(`<h6> ${plan.bookings[i].description}</h6>`);
           }
         });
       };
