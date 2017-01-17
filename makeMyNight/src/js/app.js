@@ -140,7 +140,7 @@ Planner.login = function(e) {
         </div>
         </form>
         </span>
-        <h5> My Previous Plans</h5> </div>`);
+        <h5 class="previousPlans"> My Previous Plans</h5> </div>`);
         for( var i = 0; i < user.plans.length; i++) {
           Planner.$main.append(`<div class="content"> <h6 class="previousPlans"> <a href="${Planner.apiURL}/users/${user._id}/plans/${user.plans[i]._id}" class="planDetail"> ${user.plans[i].name} </a> on ${user.plans[i].date} </h6> </div>`);
         }
@@ -175,9 +175,10 @@ Planner.login = function(e) {
       const canvas = document.getElementById('map-canvas');
 
       const mapOptions = {
-        zoom: 13,
-        center: new google.maps.LatLng(51.5154,-0.1410),
-        mapTypeId: google.maps.MapTypeId.ROADMAP
+        zoom: 14,
+        center: new google.maps.LatLng(51.510067, -0.133869),
+        mapTypeId: google.maps.MapTypeId.ROADMAP,
+        styles: [{"featureType":"administrative.neighborhood","elementType":"labels.text","stylers":[{"visibility":"simplified"}]},{"featureType":"administrative.land_parcel","elementType":"all","stylers":[{"hue":"#ff4d00"},{"saturation":6},{"lightness":-31},{"visibility":"off"}]},{"featureType":"landscape.man_made","elementType":"geometry","stylers":[{"visibility":"off"}]},{"featureType":"landscape.man_made","elementType":"geometry.fill","stylers":[{"visibility":"off"}]},{"featureType":"landscape.man_made","elementType":"geometry.stroke","stylers":[{"visibility":"off"}]},{"featureType":"landscape.man_made","elementType":"labels","stylers":[{"visibility":"off"}]},{"featureType":"landscape.man_made","elementType":"labels.text","stylers":[{"visibility":"off"}]},{"featureType":"landscape.man_made","elementType":"labels.text.fill","stylers":[{"visibility":"off"}]},{"featureType":"landscape.man_made","elementType":"labels.text.stroke","stylers":[{"visibility":"off"}]},{"featureType":"landscape.man_made","elementType":"labels.icon","stylers":[{"visibility":"off"}]},{"featureType":"poi","elementType":"all","stylers":[{"visibility":"off"}]},{"featureType":"poi.attraction","elementType":"all","stylers":[{"visibility":"off"}]},{"featureType":"poi.attraction","elementType":"geometry","stylers":[{"visibility":"off"}]},{"featureType":"poi.attraction","elementType":"geometry.fill","stylers":[{"visibility":"off"}]},{"featureType":"poi.attraction","elementType":"geometry.stroke","stylers":[{"visibility":"off"}]},{"featureType":"poi.attraction","elementType":"labels","stylers":[{"visibility":"off"}]},{"featureType":"poi.attraction","elementType":"labels.text","stylers":[{"visibility":"off"}]},{"featureType":"poi.attraction","elementType":"labels.text.fill","stylers":[{"visibility":"off"}]},{"featureType":"poi.attraction","elementType":"labels.text.stroke","stylers":[{"visibility":"off"}]},{"featureType":"poi.attraction","elementType":"labels.icon","stylers":[{"visibility":"off"}]},{"featureType":"poi.business","elementType":"labels","stylers":[{"visibility":"off"}]},{"featureType":"poi.government","elementType":"labels","stylers":[{"visibility":"off"}]},{"featureType":"poi.medical","elementType":"labels","stylers":[{"visibility":"off"}]},{"featureType":"poi.park","elementType":"all","stylers":[{"hue":"#8aff00"},{"saturation":17},{"lightness":-2},{"visibility":"on"}]},{"featureType":"poi.park","elementType":"labels","stylers":[{"visibility":"off"}]},{"featureType":"poi.place_of_worship","elementType":"all","stylers":[{"visibility":"off"}]},{"featureType":"poi.school","elementType":"all","stylers":[{"visibility":"off"}]},{"featureType":"poi.sports_complex","elementType":"all","stylers":[{"visibility":"on"}]},{"featureType":"road","elementType":"labels.text","stylers":[{"weight":"0.68"}]},{"featureType":"road.highway","elementType":"all","stylers":[{"hue":"#8aff00"},{"saturation":-47},{"lightness":-17},{"visibility":"simplified"}]},{"featureType":"road.arterial","elementType":"all","stylers":[{"hue":"#ff0000"},{"saturation":"-100"},{"lightness":13},{"visibility":"simplified"}]},{"featureType":"road.local","elementType":"all","stylers":[{"hue":"#ff0000"},{"saturation":"97"},{"lightness":100},{"visibility":"simplified"}]},{"featureType":"road.local","elementType":"labels","stylers":[{"visibility":"off"}]},{"featureType":"transit","elementType":"all","stylers":[{"visibility":"simplified"}]},{"featureType":"transit","elementType":"labels","stylers":[{"visibility":"simplified"}]},{"featureType":"transit","elementType":"labels.text","stylers":[{"visibility":"off"}]},{"featureType":"water","elementType":"all","stylers":[{"hue":"#76aee3"},{"saturation":38},{"lightness":-11},{"visibility":"on"}]}]
       };
 
       this.map = new google.maps.Map(canvas, mapOptions);
@@ -190,12 +191,19 @@ Planner.login = function(e) {
           $.each(theatre.events, (index, event) => {
             events += `<li> <a href="#" class="choosePerformance" data-id="${event.EventId}"> ${event.Name} </a> </li>`;
           });
+          const icon = {
+          url: 'images/mapmarker.png',
+          scaledSize: new google.maps.Size(20, 20),
+          origin: new google.maps.Point(0,0),
+          anchor: new google.maps.Point(0, 0)
+          };
           setTimeout(function() {
             const latlng = new google.maps.LatLng(theatre.latitude, theatre.longitude);
             const marker = new google.maps.Marker({
               position: latlng,
               map: Planner.map,
-              animation: google.maps.Animation.DROP
+              animation: google.maps.Animation.DROP,
+              icon: icon
             });
             google.maps.event.addListener(marker, 'click', () => {
               if (typeof this.infoWindow !== 'undefined') this.infoWindow.close();
