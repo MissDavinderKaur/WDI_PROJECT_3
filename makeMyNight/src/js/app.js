@@ -138,6 +138,7 @@ Planner.login = function(e) {
       Planner.showPlanDetail = function(e) {
         e.preventDefault();
         return Planner.ajaxRequest(e.currentTarget.href, 'GET', null, plan => {
+          console.log(plan);
           Planner.$main.html(`<a href="/"> Back to my page </a>
           <h6> ${plan.name} (${plan.attendees} people) on ${plan.date} </h6>`);
           for( var i = 0; i < plan.bookings.length; i++) {

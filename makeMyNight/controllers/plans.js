@@ -29,13 +29,14 @@ function plansCreate(req, res) {
 
 function plansUpdate(req, res) {
   console.log('then this');
-  Plan.findByIdAndUpdate(req.params.plan_id, req.body, {new: true})
-  .populate('bookings.booking')
-  .exec((err, plan) => {
-    if(err) return res.status(500).json(err);
-    if(!plan) return res.status(404).json({ message: 'No Plan Found.' });
-    return res.status(200).json(plan);
-  });
+  Plan
+    .findByIdAndUpdate(req.params.plan_id, req.body, {new: true})
+    .populate('bookings.booking', 'description')
+    .exec((err, plan) => {
+      if(err) return res.status(500).json(err);
+      if(!plan) return res.status(404).json({ message: 'No Plan Found.' });
+      return res.status(200).json(plan);
+    });
 }
 
 module.exports = {

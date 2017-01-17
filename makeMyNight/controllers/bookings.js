@@ -15,8 +15,10 @@ function bookingsCreate(req, res) {
 
       plan.save((err, plan) => {
         if(err) return res.status(500).json(err);
-        plan.populate('bookings');
-        return res.status(200).json(plan);
+        Plan.populate(plan, 'bookings', (err, plan) => {
+          if(err) return res.status(500).json(err);
+          return res.status(200).json(plan);
+        });
       });
     });
   });
