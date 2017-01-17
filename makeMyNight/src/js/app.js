@@ -21,6 +21,10 @@ Planner.init = function() {
     Planner.loggedInUserID = (window.atob(((window.localStorage.getItem('token')).split('.'))[1])).split('"')[3];
 
     return Planner.ajaxRequest(`${Planner.apiURL}/users/${Planner.loggedInUserID}`, 'GET', null, user => {
+      if(!user) {
+        Planner.loggedOutState();
+        Planner.generateWelcomePage();
+      }
       Planner.loggedInUser = user;
       Planner.showLoggedInUser(user);
     });
@@ -207,7 +211,7 @@ Planner.login = function(e) {
             <form class="budgetSearch" data-id=${data.EventId}> <input class="form-control userBudget" type="number" name="userBudget" required> <button class="btn btn-primary"> Search </button> </form> `);
 
             for (var i = 0; i < filteredPerformances.length; i++) {
-              Planner.$main.append(`<h6> ${data.Performances[i].PerformanceDate} <button class="bookShow"> Book </button> </h6>`);
+              Planner.$main.append(`<h6> ${data.Performances[i].PerformanceDate} <button class="bookShow" data-id="${data.Performances[i].PerformanceDate}"> Book </button> </h6>`);
             }
           });
         };
@@ -231,15 +235,17 @@ Planner.login = function(e) {
           Planner.bookShow = function(e) {
             e.preventDefault();
             Planner.currentPlan.date = ($('.bookShow').attr('data-id'));
+            const data = Planner.currentPlan
 
             Planner.ajaxRequest(
               `${Planner.apiURL}/users/${Planner.loggedInUserID}/plans/${Planner.currentPlan._id}`, 'PUT',
-              Planner.currentPlan,
+              data,
               plan => {
+                Planner.currentPlan = plan;
 
                 const booking = {
                   type: 'Show',
-                  description: Planner.tempShowName
+                  description: Planner.tempBookingShowName
                 };
 
                 Planner.ajaxRequest(
@@ -247,15 +253,15 @@ Planner.login = function(e) {
                   'POST',
                   booking,
                   plan => {
-                    console.log(plan);
+
                     Planner.$main.html(`<a href="/"> Back to my page </a>
                     <h6> ${plan.name} (${plan.attendees} people) on ${plan.date} </h6>`);
                     for( var i = 0; i < plan.bookings.length; i++) {
                       Planner.$main.append(`<h6> ${plan.bookings[i].type}: ${plan.bookings[i].description} </h6>`);
                     }
                   });
-                });
-              };
+              });
+          };
 
               Planner.logout = function(e) {
                 e.preventDefault();

@@ -8,13 +8,13 @@ function bookingsCreate(req, res) {
     if(err) return res.status(500).json(err);
     if(!plan) return res.status(404).json({ message: 'No Plan Found.' });
 
-    Booking.create(req.body.booking, (err, booking) => {
+    Booking.create(req.body, (err, booking) => {
       if(err) return res.status(500).json(err);
       plan.bookings.push(booking);
+
       plan.save((err, plan) => {
         if(err) return res.status(500).json(err);
-        console.log(plan);
-
+        plan.populate('bookings');
         return res.status(200).json(plan);
       });
     });
