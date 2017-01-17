@@ -122,7 +122,7 @@ Planner.login = function(e) {
       Planner.ajaxRequest(`${Planner.apiURL}/users/${user._id}`, 'GET', `${user._id}`, user => {
         Planner.$main.html(`<div class="content">
         <img src="../images/profilePic.jpeg" alt="Davinder Kaur">
-        <h2>Hello....... ${user.name}</h2>
+        <h2>Hello....... ${user.name}!</h2>
         <h6> <b> Email: </b> ${user.emailAddress}</h6>
         <h6> <b> Phone: </b> ${user.mobile}</h6>
         <br>
@@ -265,7 +265,7 @@ Planner.login = function(e) {
 
     Planner.bookShow = function(e) {
       e.preventDefault();
-      Planner.currentPlan.date = ($('.bookShow').attr('data-id'));
+      Planner.currentPlan.date = ($(e.target).attr('data-id'));
       const data = Planner.currentPlan
 
       Planner.ajaxRequest(
