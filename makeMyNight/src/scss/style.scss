@@ -48,14 +48,18 @@ a.nav-link {
   border-color: #70566D;
  }
 
-
-
 img {
     width: 100px;
-    height: 100px;
+    height: 150px;
     float: left;
   }
+.newPlanSpan.col-md-12 {
+  padding-top: 15px;
+}
 
+.previousPlans {
+  font-family: 'Dosis', sans-serif;
+}
 #map-canvas {
   width: 100%;
   height: calc(100vh - 53px);
