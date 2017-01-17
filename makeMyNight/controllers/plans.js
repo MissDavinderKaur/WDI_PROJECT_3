@@ -1,6 +1,6 @@
 const User = require('../models/user');
 const Plan = require('../models/plan');
-const Booking = require('../models/booking');
+//const Booking = require('../models/booking');
 
 function showPlan(req, res){
   Plan.findById(req.params.plan_id)
@@ -21,7 +21,6 @@ function plansCreate(req, res) {
       user.plans.push(plan);
       user.save((err, user) => {
         if(err) return res.status(500).json(err);
-
         return res.status(200).json(plan);
       });
     });
@@ -29,10 +28,12 @@ function plansCreate(req, res) {
 }
 
 function plansUpdate(req, res) {
-  Plan.findByIdAndUpdate(req.params.plan_id, req.body, {new: true}, (err, plan) => {
+  console.log('then this');
+  Plan.findByIdAndUpdate(req.params.plan_id, req.body, {new: true})
+  .populate('bookings.booking')
+  .exec((err, plan) => {
     if(err) return res.status(500).json(err);
     if(!plan) return res.status(404).json({ message: 'No Plan Found.' });
-    plan.populate('bookings');
     return res.status(200).json(plan);
   });
 }

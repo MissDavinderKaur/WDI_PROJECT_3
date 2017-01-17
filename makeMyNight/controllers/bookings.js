@@ -4,6 +4,7 @@ const Booking = require('../models/booking');
 
 
 function bookingsCreate(req, res) {
+  console.log('running');
   Plan.findById(req.params.plan_id, (err, plan) => {
     if(err) return res.status(500).json(err);
     if(!plan) return res.status(404).json({ message: 'No Plan Found.' });
