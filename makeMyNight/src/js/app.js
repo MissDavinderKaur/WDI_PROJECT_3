@@ -153,7 +153,7 @@ Planner.login = function(e) {
         Planner.$main.html(`<div class="content"> <a href="/"> Back to my page </a>
         <h6> ${plan.name} (${plan.attendees} people) on ${plan.date} </h6> </div>`);
         for( var i = 0; i < plan.bookings.length; i++) {
-          Planner.$main.append(`<div class="appendContent"> <h6> ${plan.bookings[i].description}</h6> </div>`);
+          Planner.$main.append(`<div class="appendContent"> <h6> ${plan.bookings[i].type}: ${plan.bookings[i].description}</h6> </div>`);
         }
       });
     };
