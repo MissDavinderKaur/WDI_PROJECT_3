@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
+const config   = require('../config/config');
 
-const databaseURL = process.env.MONGOLAB_URI || 'mongodb://localhost:27017/makemynight';
-mongoose.connect(databaseURL);
+mongoose.connect(config.db);
 
 const User = require('../models/user');
 const Booking = require('../models/booking');

@@ -4,9 +4,9 @@ const mongoose   = require('mongoose');
 const chalk      = require('chalk');
 mongoose.Promise = Promise;
 const Venue      = require('../models/venue');
+const config     = require('../config/config');
 
-const databaseURL = process.env.MONGOLAB_URI || 'mongodb://localhost:27017/makemynight';
-mongoose.connect(databaseURL);
+mongoose.connect(config.db);
 
 Venue.collection.drop();
 
