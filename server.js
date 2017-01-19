@@ -11,7 +11,7 @@ const webRouter  = require('./config/webRoutes');
 
 const app = express();
 
-mongoose.connect(config.databaseURL, console.log(`DB is connected: ${config.databaseURL}`));
+mongoose.connect(config.db, console.log(`DB is connected: ${config.databaseURL}`));
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
