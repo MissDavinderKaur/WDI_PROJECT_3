@@ -2,7 +2,7 @@ const google = google;
 const Planner = Planner || {};
 
 Planner.init = function() {
-  this.apiURL = 'http://localhost:3000/api';
+  this.apiURL = window.location.origin;
   this.$main  = $('main');
 
   $('.register').on('click', this.register.bind(this));
