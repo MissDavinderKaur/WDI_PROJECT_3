@@ -16,3 +16,4 @@ When originally designing the application, I had decided that when the user is p
 Working out how to do this was very time consuming and so took the majority of the build time. Also, working out how to store an selected  event/venue (into the plan object) required a rework of the OOP 
  
 ##Next Steps
+Due to timme constraints, I was unable to build the functionality to allow users to add food/drink bookings into the plan. Therefore this is the first feature that will need to be built. I think it would also be useful to add attendee details to the plan and be able to email/text the group with times/directions etc.
